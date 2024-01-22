@@ -60,7 +60,7 @@ function setFrequency(frequency) {
 
 
 function setFromJson(data){
-  const msg = JSON.parse(data);
+  const msg = data;
   if(msg.mode==="A"){
     currentMode = MODES.AUTO;
   }
@@ -146,13 +146,13 @@ app.use(express.json());
 
 // Define a route to handle a GET request
 app.get('/', (req, res) => {
-  const dataToSend = { "mode": currentMode, "position": currentPosition, "state": currentState };
+  const dataToSend = { "mode": currentMode, "position": currentPosition, "state": currentState.name, "level": currentLevel };
 
   // Send the JSON response
   res.json(dataToSend);
 });
 
-app.post('/update-dashboard', (req, res) => {
+app.post('/', (req, res) => {
   const dataFromReact = req.body;
   setFromJson(dataFromReact);
   
