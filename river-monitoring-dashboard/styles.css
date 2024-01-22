@@ -1,0 +1,121 @@
+/* styles.css */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  /*background-color: #4fa0cf;*/
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modes {
+  display: flex;
+  justify-content: center;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: lightgray;
+  width: fit-content;
+  border-radius: 20px;
+
+}
+
+button {
+  background-color: transparent;
+  border-radius: 20px;
+  border: 1px lightgray;
+  color: white;
+  font-size: 150%;
+  padding: 3px 10px;
+}
+
+.active {
+  background-color: #4CAF50;
+}
+
+.valvecontainer {
+  width: 25%;
+  max-width: 300px;
+}
+
+.watercontainer {
+  width: 75%;
+  max-width: fit-content;
+}
+
+.water {
+  display: flex;
+}
+
+.position {
+  text-align: center;
+}
+
+main {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  margin: 0;
+  background-color: white;
+}
+
+.state {
+  text-align: center;
+  display: flex	;
+}
+
+.meter {
+  width: 30px;
+  /* Set the width of the meter */
+  height: auto;
+  /* Set the height of the meter */
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  position: relative;
+  min-width: fit-content;
+}
+
+.fill {
+  text-align: center;
+  background-color: #4CAF50;
+  /* Set the color of the filled portion */
+  height: 80%;
+  /* Set the initial height of the filled portion */
+  width: 100%;
+  position: absolute;
+  bottom: 0;
+  color: white;
+  transition: height 0.3s ease;
+  /* Add a smooth transition effect */
+}
+
+.setter {
+  accent-color: #4CAF50;
+  width: 100%;
+}
+
+.setterContainer {
+  display: flex;
+}
+
+.setterContainer span {
+  width: fit-content;
+}
+
+p {
+  font-size: 500%;
+  text-align: center;
+  font-weight: bolder;
+  margin-top: 20px;
+}
+
+canvas {
+  width: auto;
+  max-width: 600px;
+}

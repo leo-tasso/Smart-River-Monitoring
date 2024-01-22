@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP 
+  
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'"> -->
+  <link href="./styles.css" rel="stylesheet">
+  <title>River monitor dashboard</title>
+  <script src="./renderer.js"></script>
+  <script src="./dataManager.js"></script>
+
+</head>
+
+<body>
+  <header>
+
+    <div class="state">
+      <h1>State: </h1>
+      <h1 class="currentstate">Normal</h1>
+    </div>
+    <div class="modes">
+      <button class="auto active">Auto</button>
+      <button class="man">Man</button>
+    </div>
+  </header>
+  <main>
+    <div class="valvecontainer">
+      <h2>Valve Position</h2>
+      <div class="setterContainer">
+        <span class="open">open</span>
+        <input class="setter" type="range" min="0" max="100" value="50">
+        <span class="closed">closed</span>
+      </div>
+      <p class="position">50%</p>
+    </div>
+    <div class="watercontainer">
+      <h2>Water Level</h2>
+      <div class="water">
+      <canvas id="myChart"></canvas>
+        <div class="meter">
+          <div class="fill">
+            50
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- You can also require other files to run in this process -->
+</body>
+
+</html>
