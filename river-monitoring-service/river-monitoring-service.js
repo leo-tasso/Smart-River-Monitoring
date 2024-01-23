@@ -19,7 +19,7 @@ const MODES = {
 };
 
 // Constants for communication
-const SERIAL_PORT = 'COM1'; // Change this based on your Arduino serial port
+const SERIAL_PORT = 'COM3'; // Change this based on your Arduino serial port
 const MQTT_BROKER = 'mqtt://192.168.1.26'; // Change this to your MQTT broker IP
 
 // Water level thresholds
@@ -37,7 +37,7 @@ const LEVEL_FREQUENCY_TOPIC = 'sensor/level_sensor/frequency';
 // Serial communication with Arduino
 
 
-const port = new SerialPort({ path: SERIAL_PORT, baudRate: 9600 });
+const port = new SerialPort({ path: SERIAL_PORT, baudRate: 115200 });
 const parser = port.pipe(new ReadlineParser({ delimiter: '\r\n' }));
 
 
@@ -58,22 +58,38 @@ function setFrequency(frequency) {
   client.publish(LEVEL_FREQUENCY_TOPIC, frequency.toString());
 }
 
-
-function setFromJson(data){
+function setFromJson(data) {
   const msg = data;
-  if(msg.mode==="A"){
+  if (msg.mode === "A") {
     currentMode = MODES.AUTO;
   }
-  else if (msg.mode==="M"){
+  else if (msg.mode === "M") {
     currentMode = MODES.MANUAL;
-    setValve(msg.position);
   }
-  console.log("Mode change "+currentMode);
+  setValve(msg.position);
+  console.log("Mode change " + currentMode);
+}
+function updateFromJson(data) {
+  try {
+    const msg = JSON.parse(data);
+
+    if (msg.mode === "A") {
+      currentMode = MODES.AUTO;
+    }
+    else if (msg.mode === "M") {
+      currentMode = MODES.MANUAL;
+    }
+    console.log(msg.mode);
+    currentPosition = msg.position;
+  } catch (error) {
+    console.error('Error parsing JSON:', error.message);
+  }
 }
 
 // Serial data event handler
 parser.on('data', (data) => {
-  setFromJson(data);
+  console.log("from serial: " + data);
+  updateFromJson(data);
 });
 
 // MQTT connection event handler
@@ -112,10 +128,8 @@ function checkState() {
 function handleWaterLevelChange() {
   if (currentMode === MODES.AUTO) {
     let newState = checkState();
-    console.log(checkState().name);
     if (newState !== currentState) {
       currentState = newState;
-      console.log("New mode " + newState.name);
       setFrequency(newState.frequency);
       setValve(newState.valvePosition);
     }
@@ -125,7 +139,7 @@ function handleWaterLevelChange() {
 function setValve(value) {
   currentPosition = value;
   const msg = { "mode": currentMode === MODES.AUTO ? 'A' : 'M', "position": value };
-  const data = JSON.stringify(msg);
+  const data = JSON.stringify(msg) + "!";
   port.write(data, (err) => {
     if (err) {
       console.error('Error writing to Arduino:', err.message);
@@ -147,7 +161,6 @@ app.use(express.json());
 // Define a route to handle a GET request
 app.get('/', (req, res) => {
   const dataToSend = { "mode": currentMode, "position": currentPosition, "state": currentState.name, "level": currentLevel };
-
   // Send the JSON response
   res.json(dataToSend);
 });
@@ -155,7 +168,7 @@ app.get('/', (req, res) => {
 app.post('/', (req, res) => {
   const dataFromReact = req.body;
   setFromJson(dataFromReact);
-  
+
   // Respond with a success message
   res.json({ message: 'Data received successfully' });
 });
@@ -165,3 +178,6 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 
+setTimeout(() => {
+  setValve(0)
+}, 3000);
