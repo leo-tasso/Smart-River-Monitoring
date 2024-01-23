@@ -8,6 +8,6 @@ constexpr int POT_PIN = A0;
 constexpr int BUTTON_PIN = 2;
 constexpr int GREEN_LED_PIN = 4;
 constexpr int RED_LED_PIN = 3;
-constexpr int TIME_OUT_CONNECTION = 30000;
+constexpr int TIME_OUT_CONNECTION = 300000;
 
 #endif
