@@ -135,7 +135,9 @@ function handleWaterLevelChange() {
       currentState = newState;
       setFrequency(newState.frequency);
     }
-    setValve(newState.valvePosition);
+    if (newState.valvePosition === 0 && localTemp < 0) {
+      setValve(newState.valvePosition + 10); //to avoid stopping water
+    } else setValve(newState.valvePosition);
     if (currentState === STATES.ALARM_TOO_HIGH || currentState === STATES.ALARM_TOO_HIGH_CRITIC) {
       client.publish("homeassistant/light/volumeK/set", '{"state":"ON","effect":"Breath","color":{"r":255,"g":0,"b":0,"w":0}}');
       client.publish("homeassistant/number/Nixieclock", localTemp + currentLevel.toString());
