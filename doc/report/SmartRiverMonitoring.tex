@@ -1,0 +1,16 @@
+
+\documentclass[a4paper,12pt, english]{article}
+% Load all packages and settings in the preamble 
+\input{settings/packages}
+
+\begin{document}
+	% Load initial settings for the document
+	\input{settings/initial}	
+	% Cover page
+	\input{sections/00_cover_page}
+	\newpage             
+	\tableofcontents      
+	\newpage
+	% Sections
+	\input{sections/01_body}
+\end{document}
