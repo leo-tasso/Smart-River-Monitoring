@@ -7,7 +7,11 @@ PotentiometerImpl::PotentiometerImpl(int pin, int tollerance) : pin(pin), toller
 }
 
 unsigned int PotentiometerImpl::position() {
-    return (unsigned int)map(analogRead(pin), 0, 1024, 0, 100);
+    int val = map(analogRead(pin), 20, 1000, 0, 100);
+    if(val<0) val = 0;
+    if(val>100) val = 100;
+    return val;
+
 }
 
 bool PotentiometerImpl::moved() {
