@@ -1,3 +1,6 @@
+const config = require('./secret');
+
+
 const mqtt = require('mqtt');
 const { SerialPort } = require('serialport')
 const { ReadlineParser } = require('@serialport/parser-readline')
@@ -131,7 +134,20 @@ function handleWaterLevelChange() {
     if (newState !== currentState) {
       currentState = newState;
       setFrequency(newState.frequency);
-      setValve(newState.valvePosition);
+    }
+    setValve(newState.valvePosition);
+    if (currentState === STATES.ALARM_TOO_HIGH || currentState === STATES.ALARM_TOO_HIGH_CRITIC) {
+      client.publish("homeassistant/light/volumeK/set", '{"state":"ON","effect":"Breath","color":{"r":255,"g":0,"b":0,"w":0}}');
+      client.publish("homeassistant/number/Nixieclock", localTemp + currentLevel.toString());
+      setRollerShadePosition(80);
+
+      updateTemps();
+    }
+    else {
+      client.publish("homeassistant/light/volumeK/set", '{"state":"OFF"}');
+      client.publish("homeassistant/number/Nixieclock", "99999");
+      setRollerShadePosition(100);
+
     }
   }
 }
@@ -181,3 +197,75 @@ app.listen(PORT, () => {
 setTimeout(() => {
   setValve(0)
 }, 3000);
+
+const accessToken = config.accessToken;
+let tempString = "init";
+let localTemp = "init";
+let externalTemp = "init";
+const internalEntityId = 'sensor.ewelink_th01_temperature';
+const externalEntityId = 'weather.trento';
+const apiUrl = 'https://casaforli.webredirect.org:8123/api/states/';
+function getEntityState(accessToken, entityId) {
+  const headers = {
+    Authorization: `Bearer ${accessToken}`,
+    'Content-Type': 'application/json',
+  };
+
+  return fetch(apiUrl + entityId, { headers })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .catch(error => {
+      console.error('Error fetching entity state:', error);
+      throw error; // Propagate the error to the caller
+    });
+}
+
+function updateTemps() {
+  getEntityState(accessToken, internalEntityId)
+    .then(data => data.state)
+    .then(state => {
+      localTemp = Math.round(state);
+      //console.log(`The state of ${entityId} is: ${state}`);
+    })
+    .catch(error => {
+      // Handle errors
+      console.error('Error:', error);
+      localTemp = ""
+    });
+  getEntityState(accessToken, externalEntityId)
+    .then(dataExt => {
+      externalTemp = dataExt.state + " " + dataExt.attributes.temperature;
+      //console.log(`The state of ${entityId} is: ${state}`);
+    })
+    .catch(error => {
+      // Handle errors
+      console.error('Error:', error);
+      externalTemp = ""
+    });
+}
+
+
+function setRollerShadePosition(position) {
+  const headers = {
+    Authorization: `Bearer ${accessToken}`,
+    'Content-Type': 'application/json',
+  };
+
+  const body = JSON.stringify({ entity_id: "cover.tz3000_1dd0d5yi_ts130f_cover", position: position });
+
+  return fetch('https://casaforli.webredirect.org:8123/api/services/cover/set_cover_position', { method: 'POST', headers, body })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .catch(error => {
+      console.error('Error setting roller shade position:', error);
+      throw error; // Propagate the error to the caller
+    });
+}
