@@ -1,4 +1,6 @@
 \section{Circuit}
+\subsection{Level detector}
+Here the main board is an esp8266 not the arduino uno.\\
 The circuit schematic is as follows:\\
 %\includegraphics[width=\textwidth]{schematic}
 \begin{center}
@@ -7,33 +9,81 @@ The circuit schematic is as follows:\\
         Device             & pinout \\
         \hline
         \hline
-        Temperature sensor & A1     \\
+        Sonar vcc & Vin     \\
         \hline
-        Pir                & 2      \\
+        Echo                & D1      \\
         \hline
-        L1                 & 7      \\
+        Trig                 & D0      \\
         \hline
-        L2                 & 6      \\
+        Green Anode                 & D2      \\
         \hline
-        L3                 & 5      \\
+        Red Anode                 & D3      \\
         \hline
-        Servo              & 3      \\
+        Red cathode              & 220ohm to ground      \\
         \hline
-        Sonar trig         & 11     \\
-        \hline
-        Ssonar echo        & 12     \\
+        Green cathode              & 220ohm to ground     \\
         \hline
     \end{tabular}
 \end{center}
-Since the servo motor might draw more current than the 150mA offered by arduino pins it's advisable to feed the servo with external power.
-All the elements attached to the power line create noise that hinder the analog temperature sensor's readings.\\
-To dampen this effect it is possible to add decoupling capacitors (10-100 uF) to filter a bit those variation.
+Since the sonar works at 5 volt its vcc pin has to be fed by the vin of the esp8266, it is directly liked to the 5v line of the usb, otherwise it would get only 3.3 that is the working tension of the microcontorller.
+\pagebreak
+
+\subsection{Water channel controller}
+The circuit schematic is as follows:\\
+\includegraphics[width=\textwidth]{circuit.png}
+\begin{center}
+    \begin{tabular}{|c|c|}
+        \hline
+        Device             & pinout \\
+        \hline
+        \hline
+        Servo vcc/gnd  & ext power supply     \\
+        \hline
+        Servo signal                &    3   \\
+        \hline
+        Button                 & 2      \\
+        \hline
+        Green Anode                 & 4      \\
+        \hline
+        Red Anode                 & 5      \\
+        \hline
+        Red cathode              & 220ohm to ground      \\
+        \hline
+        Green cathode              & 220ohm to ground     \\
+        \hline
+        Potentiometer              & A0     \\
+        \hline
+        LCD  SDA             & SDA     \\
+        \hline
+        LCD  SCL             & SCL     \\
+        \hline
+    \end{tabular}
+\end{center}
+The button is configured as input pullup, so it does not require an external resistor.
+The servo is fed by an external power supply since it needs peaks of current that the arduino is not capable of offering without some additional capacitors. 
 \pagebreak
 
 
 \section{Software Architecture}
-\subsection{Arduino}
-
+\subsection{Water Level Monitoring subsystem}
+This segment of the system is composed by a simple arduino sketch that sends the readings of the sonar to a mqtt topic.\\
+It also reads the required frequency of the recordings in another topic, this frequency is set by the main service (see below).
+\subsection{Dashboard}
+The dashboard is written in html css an js, it is packaged in a runnable executable exploiting the electron framework.\\
+It fetches the data via http with a the get method, the main service sends the parameter in a json format.\\
+It sets the parameter with a post request sending data in json format as well. \\
+From the dashboard it is possible to select the mode and the position of the valve.\\
+It also shows the actual level of the water and a chart of the past values.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Screenshot.png}
+\end{figure}
+\pagebreak
+\subsection{River Monitoring Service}
+This is the main service that manages the logic of the system, it follows the specs given by the assignment.\\
+It is written in js and run by node, it communicates with arduino exchanging data on the serial line. It fetches the level of the water via mqtt.\\
+Via express.js it exposes the API with get and post methods to set and get the data.
+\subsection{Water Channel Controller}
 The program running on arduino is written in C++ using the wiring framework and the platformIo utility.\\
 It is managed by a syncronous scheduler, it is triggered by a timer and launches non cooperative tasks.\\
 Each task period has been chosen accordingly to its operative requirements, and is a multiple of the base period of the scheduler.
@@ -48,64 +98,32 @@ The work tree of the program is divided in:
 On the root are present:
 \begin{itemize}
     \item The main file, entry poit of the program, where the scheduler and the tasks are instantiated.
-    \item CarWash class, representing the domain of the system with all the shared variables.
+    \item Smart river monitoring class, representing the domain of the system with all the shared variables.
     \item Config, configuration file to tune all the parameters of the program.
 \end{itemize}
 \pagebreak
-\subsection{Rust}
-The rust application uses "egui", a simple, fast, and highly portable immediate mode GUI library.
-The other main crate used is "Serialport" for serial communication, a new thread is created to listen to the selected port,
-it expects a \underline{\textbf{Json}} with the parameters of the CarWash class, it then parses it and records the data inside the program.
-To do so also mutexes are used to ensure no race conditions since also the gui thread is using the same data.\\
-It has been tested both on Windows and MacOs.
-\begin{figure}[H]
-    \centering
-%    \includegraphics[width=0.50\textwidth]{Dashboard.png}
-    \caption{Screenshot of the dashboard ui}
-\end{figure}
 
-\pagebreak
-\section{General diagram}
-\begin{figure}[H]
-    \centering
-%    \includegraphics[width=\textwidth]{vertical.pdf}
-\end{figure}
-\pagebreak
 \section{Tasks}
-\subsection{checkInDetection}
-This task manages the detection of a car inside the check in area with a pir sensor and the state of the L1 led.
+\subsection{communicator Task}
+This task is responsible of communicating via serial with the dashboard encoding in json the relative data.\\
+It also collects the request incoming via serial in the same format.
 \begin{figure}[H]
     \centering
-%    \includegraphics[width=0.7\textwidth]{CheckInAreaDetection.pdf}
+\includegraphics[width=0.9\textwidth]{Communicator.pdf}
 \end{figure}
-\subsection{washingAreaDetection}
-This task manages the detection of a car inside the washing area with a sonar sensor.
+\pagebreak
+\subsection{valveController Task}
+This task is responsible of change the position of the valve according to the instructions fetched from the other tasks.
 \begin{figure}[H]
     \centering
-%\includegraphics[width=0.7\textwidth]{WashingAreaDetection.pdf}
+\includegraphics[width=0.6\textwidth]{ValveController.pdf}
 \end{figure}
-\subsection{washer}
-This task manages the washing process, L2 and L3 leds.
+\subsection{inputChecker Task}
+This task is responsible of sensing the changes in the potentiometer and on the button, it issues commands accordingly.
+It automatically switches to manual if the potentiometer is moved, while for the button it alternates between the two modes.
 \begin{figure}[H]
     \centering
-%\includegraphics[width=0.8\textwidth]{Washer.pdf}
+%\includegraphics[width=0.8\textwidth]{InputChecker.pdf}
 \end{figure}
-\subsection{manageTemperature}
-This task checks the temperature with an analog sensor and records it, it also signals if it is over the limit.
-\begin{figure}[H]
-    \centering
-%\includegraphics[width=0.8\textwidth]{MangeTemperature.pdf}
-\end{figure}
-\subsection{manageAccess}
-This task manages the position of the bar.
-\begin{figure}[H]
-    \centering
-%\includegraphics[width=0.8\textwidth]{ManageAccess.pdf}
-\end{figure}
-\subsection{displayFeedback}
-This task displaies the appropriate message on the display.
-\subsection{communicator}
-This task is responsible of communicating via serial with the dashboard.
-\subsection{sleepTask}
-This task triggers the sleep when the situation requires it.
-
+\subsection{displayFeedback Task}
+This task displaies the active status of the machine (auto/manual) and the position of the valve message on the LCD display.
