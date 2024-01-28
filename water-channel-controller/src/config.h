@@ -10,5 +10,6 @@ constexpr int GREEN_LED_PIN = 4;
 constexpr int RED_LED_PIN = 5;
 constexpr long TIME_OUT_CONNECTION = 300000L;
 constexpr int SERVO_PIN = 3;
+constexpr int TIME_TO_MOVE = 10;
 
 #endif

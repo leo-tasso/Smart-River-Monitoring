@@ -13,7 +13,7 @@ class Actuator : public TaskWithState<ActuatorStates> {
    private:
     WaterChannelController* waterChannelController;
     ServoMotor* motor;
-    unsigned int timeToMove{0};
+    unsigned int timeToMove{TIME_TO_MOVE};
 
    public:
     Actuator(int period, WaterChannelController* WaterChannelController, int servoPin);
