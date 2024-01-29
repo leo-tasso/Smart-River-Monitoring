@@ -25,7 +25,7 @@ The circuit schematic is as follows:\\
         \hline
     \end{tabular}
 \end{center}
-Since the sonar works at 5 volt its vcc pin has to be fed by the vin of the esp8266, it is directly liked to the 5v line of the usb, otherwise it would get only 3.3 that is the working tension of the microcontorller.
+Since the sonar works at 5 volt its vcc pin has to be fed by the vin of the esp8266, it is directly liked to the 5v line of the usb, otherwise it would get only 3.3 that is the working tension of the microcontroller.
 \pagebreak
 
 \subsection{Water channel controller}
@@ -97,7 +97,7 @@ The work tree of the program is divided in:
 \end{itemize}
 On the root are present:
 \begin{itemize}
-    \item The main file, entry poit of the program, where the scheduler and the tasks are instantiated.
+    \item The main file, entry point of the program, where the scheduler and the tasks are instantiated.
     \item Smart river monitoring class, representing the domain of the system with all the shared variables.
     \item Config, configuration file to tune all the parameters of the program.
 \end{itemize}
@@ -126,4 +126,4 @@ It automatically switches to manual if the potentiometer is moved, while for the
 %\includegraphics[width=0.8\textwidth]{InputChecker.pdf}
 \end{figure}
 \subsection{displayFeedback Task}
-This task displaies the active status of the machine (auto/manual) and the position of the valve message on the LCD display.
+This task displays the active status of the machine (auto/manual) and the position of the valve message on the LCD display.
